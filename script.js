@@ -87,33 +87,29 @@ function setupImageUpload() {
   const imgView = document.getElementById("img-view");
   if (!inputFile || !imgView) return;
 
-  imgView.addEventListener("click", () => inputFile.click());
-
   inputFile.addEventListener("change", () => {
     const file = inputFile.files[0];
     if (!file) return;
 
-    // iPhone safety check
     if (!file.type.startsWith("image/")) {
       alert("Please select an image file.");
       return;
     }
 
     const reader = new FileReader();
+
     reader.onload = () => {
       uploadedImage = reader.result;
 
       imgView.innerHTML = `
         <img src="${uploadedImage}" class="preview-image" style="max-width:100%;">
       `;
-
-      // ✅ Fix: allows selecting same file again
-      inputFile.value = "";
     };
 
     reader.readAsDataURL(file);
   });
 }
+
 
 // ================== POST BUTTON ==================
 function setupPostButton() {
@@ -146,6 +142,10 @@ async function addPost() {
 
     contentEl.value = "";
     uploadedImage = null;
+
+const inputFile = document.getElementById("input-file");
+if (inputFile) inputFile.value = "";
+
 
     const imgView = document.getElementById("img-view");
     if (imgView) {
