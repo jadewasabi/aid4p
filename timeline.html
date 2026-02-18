@@ -12,43 +12,43 @@
   <div class="container">
     <h2 id="welcome"></h2>
     <textarea id="postContent" placeholder="Post a question..."></textarea> 
-    <div class="area">
-      <label for="input-file" id="drop-area">
-        <input type="file" id="input-file" accept="image/*" capture="environment" style="display:none;">
 
-        <div id="img-view">
-          <img src="drop.png">
-          <p> Upload an image that shows the problem</p>
-          <span>
-            Upload any image from desktop
-          </span> 
-        </div>
+    <div class="area">
+      <label for="input-file" id="img-view" style="cursor:pointer; display:block;">
+        <img src="drop.png" style="max-width:100%; display:block;">
+        <p>Upload an image that shows the problem</p>
+        <span>Upload any image</span>
       </label>
+
+      <input 
+        type="file"
+        id="input-file"
+        accept="image/*"
+        capture="environment"
+        style="display:none;"
+      >
     </div>
+
     <button id="postBtn">Post</button>
     
 
     <h3>Timeline</h3>
 
+    <nav class="navbar">
+      <div class="nav-title">AID4PROGRAMMERS</div>
+      <ul class="nav-options">
+        <li class="home"><a href="index.html">Back</a></li>
+        <li>
+          <input type="search" id="searchInput" placeholder="Search users or posts...">
+        </li>
+      </ul>
+    </nav>
 
-      <nav class="navbar">
-  <div class="nav-title">AID4PROGRAMMERS</div>
-  <ul class="nav-options">
-    <li class="home"><a href="index.html">Back</a></li>
-    <li>  <input type="search" id="searchInput" placeholder="Search users or posts..."> </li>
-  </ul>
-</nav>
+    <div id="timeline"></div>
 
-<div id="timeline"> </div>
-                          
+    <script src="script.js" defer></script>
 
-       
-      <script src="script.js" defer></script>
-      
+  </div>
 </body>
 
-
 </html>
-
-
-
