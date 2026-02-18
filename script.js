@@ -4,7 +4,7 @@
 ‎let posts = []; // loaded from server
 ‎let users = []; // loaded from server
 ‎
-‎const API = "https://aid4programmers.onrender.com";
+‎const API = "https://aid4p.onrender.com";
 ‎
 ‎// ================== PAGE LOAD ==================
 ‎document.addEventListener("DOMContentLoaded", () => {
