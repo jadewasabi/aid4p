@@ -1,7 +1,7 @@
 let uploadedImage = null;
 let username = "";
-let posts = [];
-let users = [];
+let posts = []; // loaded from server
+let users = []; // loaded from server
 
 const API = "https://aid4p.onrender.com";
 
@@ -17,7 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!name) return alert("Enter a username");
 
       try {
-        await fetch(`${API}/users`, {
+        // Create user on server (tutorial timeline)
+        await fetch(`${API}/tutorials/users`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: name })
@@ -26,12 +27,14 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("User creation failed:", err);
       }
 
+      // Redirect to timeline with username query
       window.location.href = "tutorials.html?user=" + encodeURIComponent(name);
     });
 
     return;
   }
 
+  // If no continue button -> timeline page
   initTimeline();
 });
 
@@ -40,6 +43,7 @@ async function initTimeline() {
   const params = new URLSearchParams(window.location.search);
   username = params.get("user") || "Guest";
 
+  // Update welcome
   const welcomeEl = document.getElementById("welcome");
   if (welcomeEl) welcomeEl.textContent = `Welcome, ${username}!`;
 
@@ -49,8 +53,10 @@ async function initTimeline() {
   setupImageUpload();
   setupPostButton();
 
+  // Load users and posts from server
   await Promise.all([loadUsers(), loadPosts()]);
 
+  // Search filter
   const searchInput = document.getElementById("searchInput");
   if (searchInput) {
     searchInput.addEventListener("input", () => {
@@ -58,12 +64,14 @@ async function initTimeline() {
       renderPosts(query);
     });
   }
+
+  renderPosts();
 }
 
 // ================== LOAD USERS ==================
 async function loadUsers() {
   try {
-    const res = await fetch(`${API}/tutser`);
+    const res = await fetch(`${API}/tutorials/users`);
     users = await res.json();
   } catch (err) {
     console.error("Failed to load users:", err);
@@ -73,7 +81,7 @@ async function loadUsers() {
 // ================== LOAD POSTS ==================
 async function loadPosts() {
   try {
-    const res = await fetch(`${API}/tutorialspt`);
+    const res = await fetch(`${API}/tutorials/posts`);
     posts = await res.json();
     renderPosts();
   } catch (err) {
@@ -87,29 +95,20 @@ function setupImageUpload() {
   const imgView = document.getElementById("img-view");
   if (!inputFile || !imgView) return;
 
+  imgView.addEventListener("click", () => inputFile.click());
+
   inputFile.addEventListener("change", () => {
     const file = inputFile.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("Please select an image file.");
-      return;
-    }
-
     const reader = new FileReader();
-
     reader.onload = () => {
       uploadedImage = reader.result;
-
-      imgView.innerHTML = `
-        <img src="${uploadedImage}" class="preview-image" style="max-width:100%;">
-      `;
+      imgView.innerHTML = `<img src="${uploadedImage}" style="max-width:100%; display:block;">`;
     };
-
     reader.readAsDataURL(file);
   });
 }
-
 
 // ================== POST BUTTON ==================
 function setupPostButton() {
@@ -120,44 +119,33 @@ function setupPostButton() {
 }
 
 // ================== ADD POST ==================
-async function addPost() {
+function addPost() {
   const contentEl = document.getElementById("postContent");
   const content = contentEl.value.trim();
-
   if (!content && !uploadedImage) return;
 
-  try {
-    const res = await fetch(`${API}/posts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, content, image: uploadedImage })
-    });
+  fetch(`${API}/tutorials/posts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username,
+      content,
+      image: uploadedImage
+    })
+  })
+    .then(() => loadPosts())
+    .catch(err => console.error("Post failed:", err));
 
-    if (!res.ok) throw new Error("Failed to add post");
+  contentEl.value = "";
+  uploadedImage = null;
 
-    const newPost = await res.json();
-
-    posts.unshift(newPost);
-    renderPosts();
-
-    contentEl.value = "";
-    uploadedImage = null;
-
-const inputFile = document.getElementById("input-file");
-if (inputFile) inputFile.value = "";
-
-
-    const imgView = document.getElementById("img-view");
-    if (imgView) {
-      imgView.innerHTML = `
-        <img src="drop.png" style="max-width:100%; display:block;">
-        <p>Click here to upload an image</p>
-        <span>Upload any image</span>
-      `;
-    }
-
-  } catch (err) {
-    console.error("Post failed:", err);
+  const imgView = document.getElementById("img-view");
+  if (imgView) {
+    imgView.innerHTML = `
+      <img src="drop.png">
+      <p>Click here to upload an image</p>
+      <span>Upload any image from desktop</span>
+    `;
   }
 }
 
@@ -168,6 +156,7 @@ function renderPosts(query = "") {
 
   timeline.innerHTML = "";
 
+  // Render posts
   posts.forEach((post, index) => {
     const postUser = post.username || "Unknown";
     const postContent = post.content || "";
@@ -188,7 +177,11 @@ function renderPosts(query = "") {
 
       ${postContent ? `<p>${postContent}</p>` : ""}
 
-      ${postImage ? `<img src="${postImage}" class="post-image" style="max-width:100%;">` : ""}
+      ${
+        postImage
+          ? `<img src="${postImage}" style="max-width:100%; display:block;">`
+          : ""
+      }
 
       <input type="text" id="comment-${index}" placeholder="Write a comment">
       <button onclick="addComment(${index})">Comment</button>
@@ -203,7 +196,7 @@ function renderPosts(query = "") {
     timeline.appendChild(div);
   });
 
-  // Users with no posts
+  // Render users with no posts
   users.forEach(user => {
     const hasPost = posts.some(p => p.username === user);
     if (!hasPost && (!query || user.toLowerCase().includes(query))) {
@@ -224,7 +217,7 @@ function addComment(index) {
   const input = document.getElementById(`comment-${index}`);
   if (!input || !input.value.trim()) return;
 
-  fetch(`${API}/posts/comment`, {
+  fetch(`${API}/tutorials/posts/comment`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -237,3 +230,5 @@ function addComment(index) {
 
   input.value = "";
 }
+
+
