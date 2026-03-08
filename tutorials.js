@@ -95,12 +95,6 @@ function setupImageUpload() {
   const imgView = document.getElementById("img-view");
   if (!inputFile || !imgView) return;
 
-  // Click upload box to open file picker
-  imgView.addEventListener("click", () => {
-    inputFile.value = ""; // reset so change always fires
-    inputFile.click();
-  });
-
   inputFile.addEventListener("change", () => {
     const file = inputFile.files[0];
     if (!file) return;
@@ -121,6 +115,8 @@ function setupImageUpload() {
     };
 
     reader.readAsDataURL(file);
+
+    inputFile.value = ""; // reset for next upload
   });
 }
 
@@ -244,6 +240,7 @@ function addComment(index) {
 
   input.value = "";
 }
+
 
 
 
