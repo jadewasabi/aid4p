@@ -95,17 +95,31 @@ function setupImageUpload() {
   const imgView = document.getElementById("img-view");
   if (!inputFile || !imgView) return;
 
-  imgView.addEventListener("click", () => inputFile.click());
+  // Click upload box to open file picker
+  imgView.addEventListener("click", () => {
+    inputFile.value = ""; // reset so change always fires
+    inputFile.click();
+  });
 
   inputFile.addEventListener("change", () => {
     const file = inputFile.files[0];
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file.");
+      return;
+    }
+
     const reader = new FileReader();
+
     reader.onload = () => {
       uploadedImage = reader.result;
-      imgView.innerHTML = `<img src="${uploadedImage}" style="max-width:100%; display:block;">`;
+
+      imgView.innerHTML = `
+        <img src="${uploadedImage}" class="preview-image" style="max-width:100%;">
+      `;
     };
+
     reader.readAsDataURL(file);
   });
 }
@@ -230,5 +244,6 @@ function addComment(index) {
 
   input.value = "";
 }
+
 
 
